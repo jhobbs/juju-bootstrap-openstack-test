@@ -1,0 +1,17 @@
+#!/bin/bash -xe
+. novarc
+tenant=$(keystone tenant-list | awk '/admin/ {print $2}')
+
+NOVA_QUOTAS="instances cores ram floating-ips fixed-ips security-groups security-group-rules key-pairs"
+
+for quota in $NOVA_QUOTAS;
+do
+	nova quota-update --${quota} -1 $tenant
+done
+
+NEUTRON_QUOTAS="security-group floatingip port"
+
+for quota in $NEUTRON_QUOTAS;
+do
+	neutron quota-update --${quota} -1 --tenant-id $tenant
+done

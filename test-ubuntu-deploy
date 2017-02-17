@@ -1,0 +1,7 @@
+#!/bin/bash -xe
+
+MODEL=${NEW_CONTROLLER}:default
+
+juju deploy -m $MODEL ubuntu --series xenial
+juju wait -e $MODEL
+juju ssh -m $MODEL ubuntu/0 'id'

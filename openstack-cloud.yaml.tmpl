@@ -1,0 +1,8 @@
+clouds:
+  ${NEW_CLOUD}:
+    type: openstack
+    auth-types: [userpass]
+    regions:
+      RegionOne:
+        endpoint: ${OS_AUTH_URL}
+        network:

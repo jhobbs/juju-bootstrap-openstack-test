@@ -1,0 +1,47 @@
+#!/bin/bash -xeu
+
+# note: expects novarc exported, and OPENSTACK_MODEL.
+
+LOCAL_IMAGES_DIR=./images
+export JUJU_STARTUP_LOGGING_CONFIG=TRACE
+
+function bootstrap() {
+	rm -rf $LOCAL_IMAGES_DIR
+	mkdir $LOCAL_IMAGES_DIR
+
+	for IMAGE_ID in $(glance image-list | grep amd64 | awk {'print $2'});
+	do
+		juju metadata generate-image -r RegionOne -u $OS_AUTH_URL -d $LOCAL_IMAGES_DIR -i $IMAGE_ID -s xenial
+	done
+
+	chmod -R 755 $LOCAL_IMAGES_DIR
+
+	envsubst < openstack-cloud.yaml.tmpl > openstack-cloud.yaml
+	envsubst < openstack-credentials.yaml.tmpl > openstack-credentials.yaml
+
+	set +e
+	juju controllers | grep -q $NEW_CLOUD
+	found=$?
+	set -e
+	if [ $found == 0 ];
+	then
+		juju kill-controller --yes $NEW_CLOUD
+		juju unregister --yes $NEW_CLOUD
+	fi
+	juju add-cloud --replace $NEW_CLOUD openstack-cloud.yaml
+	juju add-credential --replace -f openstack-credentials.yaml $NEW_CLOUD
+        local net_id=`nova net-list | grep admin-net | awk {'print $2'}`
+        local images_path=`readlink -f $LOCAL_IMAGES_DIR`
+	juju bootstrap $NEW_CLOUD \
+		--keep-broken \
+                --metadata-source $images_path \
+		--config network=${net_id} \
+		--config use-floating-ip=true \
+		--config test-mode=True \
+		--bootstrap-constraints 'mem=100M' \
+		--debug
+	juju model-defaults -c ${NEW_CONTROLLER} \
+		test-mode=True
+}
+
+bootstrap
