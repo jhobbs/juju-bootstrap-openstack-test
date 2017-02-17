@@ -1,8 +1,8 @@
 #!/bin/bash -xeu
 
-if [ $# -ne 1 ];
+if [ $# -ne 2 ];
 then
-        echo "syntax: $0 <openstack-model>"
+        echo "syntax: $0 <openstack-model> <artifacts>"
         exit 1
 fi
 
