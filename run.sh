@@ -16,13 +16,7 @@ mkdir -p $ARTIFACTS_FOLDER
 
 error() {
   local parent_lineno="$1"
-  local message="$2"
-  local code="${3:-1}"
-  if [[ -n "$message" ]] ; then
-    echo "Error on or near line ${parent_lineno}: ${message}; waiting for debug"
-  else
-    echo "Error on or near line ${parent_lineno}; waiting for debug"
-  fi
+  echo "Error on or near line ${parent_lineno}: waiting for debug"
   sleep 1d
   exit "${code}"
 }
