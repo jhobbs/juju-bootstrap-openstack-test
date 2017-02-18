@@ -1,4 +1,4 @@
-#!/bin/bash -xeu
+#!/bin/bash -xu
 
 if [ $# -ne 2 ];
 then
@@ -13,6 +13,20 @@ export NEW_CONTROLLER=$NEW_CLOUD-RegionOne
 ARTIFACTS_FOLDER=$2
 
 mkdir -p $ARTIFACTS_FOLDER
+
+error() {
+  local parent_lineno="$1"
+  local message="$2"
+  local code="${3:-1}"
+  if [[ -n "$message" ]] ; then
+    echo "Error on or near line ${parent_lineno}: ${message}; waiting for debug"
+  else
+    echo "Error on or near line ${parent_lineno}; waiting for debug"
+  fi
+  sleep 1d
+  exit "${code}"
+}
+trap 'error ${LINENO}' ERR
 
 . novarc
 
